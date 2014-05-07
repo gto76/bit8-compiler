@@ -1,5 +1,8 @@
 import scala.collection.mutable.ListBuffer
 
+/**
+ * hotfix
+ */
 object Compiler {
    
    def buildExecutionTree(parsedSource: List[String]): Node = {
