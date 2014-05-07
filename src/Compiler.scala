@@ -13,7 +13,7 @@ object Compiler {
 		val isReferenced: Boolean = false	
    )
 
-   def expandNode(nodeId: List[Int], tokens: List[String]): Node = {
+   def expandNode(nodeText: String, nodeId: List[Int], tokens: List[String]): Node = {
        val node = new Node(nodeText, nodeId)
        ///
        if (tokens == null || tokens.isEmpty) {
@@ -25,7 +25,7 @@ object Compiler {
        } else {
            moreThanOneChild(tokens, node, nodeId);        
        }
-       ///
+       
        node
    }
    
