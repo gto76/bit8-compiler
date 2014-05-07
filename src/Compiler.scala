@@ -1,7 +1,6 @@
 import scala.collection.mutable.ListBuffer
 
 /**
- * This is the main branch. second commit
  */
 object Compiler {
    
@@ -28,7 +27,7 @@ object Compiler {
        } else {
            moreThanOneChild(tokens, node, nodeId);        
        }
-       ///
+       
        node
    }
    
