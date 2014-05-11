@@ -1,143 +1,162 @@
 import scala.collection.mutable.ListBuffer
 
+class Node(	 
+	val text: String,
+	val id: List[Int],
+	var children: ListBuffer[Node] = new ListBuffer[Node], 
+	var isReferenced: Boolean = false	
+	) {
+	override def toString() = text
+	def toStrinAll() = text+" ; "+id+" ; "+isReferenced+" ; "+children
+	def identifier = "[A-Z_]+".r.findFirstIn(text).get
+	def parentsId = id.dropRight(1)
+	def id_if = Compiler.transposeId_if(id)
+	def id_jump = Compiler.transposeId_jump(id) 
+	//TODO get id as string
+}
+
 /**
+ * nameless
  */
 object Compiler {
+   val DEBUG = false
    
    def buildExecutionTree(parsedSource: List[String]): Node = {
-       expandNode("ROOT", List(0), parsedSource)
+       val root = expandNode(parsedSource, List(0))
+       setIsReferencedFlags(root)
+       return root
    }
    
-   class Node(	
-		val text: String, 
-		val id: List[Int], 
-		val children: ListBuffer[Node] = new ListBuffer[Node], 
-		val isReferenced: Boolean = false	
-   )
+   ////////////////////////////////////////////////
 
-   def expandNode(nodeText: String, nodeId: List[Int], tokens: List[String]): Node = {
-       val node = new Node(nodeText, nodeId)
-       ///
+   def expandNode(tokens: List[String], nodeId: List[Int]): Node = {
+       if (tokens != null)
+    	   println(tokens)
+
        if (tokens == null || tokens.isEmpty) {
-           return node
+           println("############ EXPAND NODE NULL ##############: " + tokens +" "+ nodeId)
+           null
        } else if (tokens.size == 1) {
-           val child = expandNode(tokens.head, nodeId:+ 0, null)
-           node.children.append(child)
-           return node
+           new Node(tokens.head, nodeId)
        } else {
-           moreThanOneChild(tokens, node, nodeId);        
+           moreThanOneChild(tokens, nodeId);        
        }
-       
-       node
+   } 
+   
+   def moreThanOneChild(tokens: List[String], nodeId: List[Int]): Node = {
+       if (getIdentifier(tokens.head).get == "IDENT") {
+           println("IDENT is head")
+           processDividers(tokens, nodeId)
+       } else {
+           processOperators(tokens, nodeId)
+       }
    }
    
-   def moreThanOneChild(tokens: List[String], node: Node, nodeId: List[Int]) {
-       val sortedTokens = tokens.sorted
+   def getIdentifier(token: String) = "[A-Z_]+".r.findFirstIn(token)
+   def getNumber(token: String) = token.split(",").head
+
+   def getIndexesOfHighestOperators(tokens: List[String]) = {
+	   val sortedTokens = tokens.sorted
        val highestOperator = sortedTokens.head
-       val highestOperatorLevel = highestOperator.split(",").head
-       val highestOperators = sortedTokens.takeWhile(text => text.startsWith(highestOperatorLevel))
-       val noOfHighestOperators = highestOperator.size
+       val highestOperatorNumber = getNumber(highestOperator)
+       val highestOperators = sortedTokens.takeWhile(text => text.startsWith(highestOperatorNumber.toString))
        val indexesOfHighestOperators = new ListBuffer[Int]
        for (oneOfHighestOperators <- highestOperators) {
            indexesOfHighestOperators += tokens.indexOf(oneOfHighestOperators)
        }
-       
-       if (noOfHighestOperators > 1) { // LB, IDENT, DEDENT
-           lines(indexesOfHighestOperators, node, tokens, nodeId)
-       }
-       else { // all other operators
-           nonLines(indexesOfHighestOperators, node, tokens, nodeId)
-       }
+       if (DEBUG) Util.printAll2(tokens, sortedTokens, highestOperator, highestOperators, indexesOfHighestOperators)
+	   indexesOfHighestOperators
    }
    
-   def lines(indexesOfHighestOperators: ListBuffer[Int], node: Node, tokens: List[String], nodeId: List[Int]) {
-       val sortedIndexesOfHighestOperators = indexesOfHighestOperators.sorted.toList
-       for (i <- 0 to sortedIndexesOfHighestOperators.size - 2) {
-           val grandChildren = tokens.slice(sortedIndexesOfHighestOperators(i), sortedIndexesOfHighestOperators(i+1))
-           val child = expandNode(tokens(sortedIndexesOfHighestOperators(i)), nodeId:+ i, grandChildren)
-           node.children:+ child
-       }
-       val grandChildren = tokens.takeRight(sortedIndexesOfHighestOperators.last) 
-       val lastChild = expandNode(tokens(sortedIndexesOfHighestOperators.last), nodeId:+ sortedIndexesOfHighestOperators.size-1, grandChildren)
-       node.children:+ lastChild
-   }
-   
-   def nonLines(indexesOfHighestOperators: ListBuffer[Int], node: Node, tokens: List[String], nodeId: List[Int]) {
-       val operatorsIndex = indexesOfHighestOperators.head
-       if (operatorsIndex == 0) { // Prefix Operator
-           val child = expandNode(tokens.head, nodeId:+ 0, tokens.tail) // Not neceseraly
-           // ok; what if child is...
-           node.children:+ child
-       }
-       else { // Operator between parameters
-           // TODO!!!
-           node.children:+ expandNode(tokens(operatorsIndex), nodeId:+ 0, tokens.slice(0, operatorsIndex-1))
-           node.children:+ expandNode(tokens(operatorsIndex), nodeId:+ 1, tokens.slice(operatorsIndex, tokens.size))
-       }
-   }
-   
-   ////////////////////////////
-   
-   def printTheTree(root: Node) {
-       walkTheTree(root, node => print(node.text))
-   }
-   
-   def walkTheTree(node: Node, f: Node => Unit) {
-       if (node.children.size == 0) {
-           f(node)
-           return
-   		}
-       for (child <- node.children) {
-           walkTheTree(child, f)
-       }
-   }
-   
-   /*
-   def buildTree(parsedProgram: List[List[String]]): Node = {
-       val root = new Node("[MAIN,]")
-       for (line <- parsedProgram) {
-           val index = line.indexWhere(a => a.contains("ASIGN") || a.contains("IO"))
-           val operator = line(index)
-           val left = line.take(index)
-           val right = line.drop(index+1)
-           if (operator.contains("ASIGN")) {
-               val child = develop(right)
-               val list = new ListBuffer[Node]
-               list.append(child)
-               val node = new Node(operator, list)
-               root.c.append(node)
-           }
-           //print("node: " + node)
-           //print("left: " + left)
-           //print("right: " + right)
-       }
-       root
-   }
+   def processDividers(tokensIn: List[String], nodeId: List[Int]): Node = {
+       val node = new Node(tokensIn.head, nodeId)
+       val tokens = tokensIn.tail
+       val indexesOfHighestOperators = getIndexesOfHighestOperators(tokens)
+       val sortedIndexesOfHighestOperators = (indexesOfHighestOperators.sorted :+ tokens.size).toList
 
-   def develop(s : List[String]): Node = {
-       if (s.length == 0) {
-    	   return null
+       for (i <- 0 to sortedIndexesOfHighestOperators.size - 2) {
+           val descendants = tokens.slice(sortedIndexesOfHighestOperators(i), sortedIndexesOfHighestOperators(i+1)) 
+           val children = expandNode(descendants, nodeId:+ i)
+           node.children += children
        }
-       if (s.length == 1) {
-           return new Node(s(0))
-       }
-       val index = getIndexOfHighestOperator(s)
-       val operator = s(index)
-       val left = develop(s.take(index))
-       val right = develop(s.drop(index+1))
-       //print("#" + indexOfhighestOperator)
-       val node = new Node(operator)
-       if (left != null)
-    	   node.c.append(left)
-       if (right != null)
-    	   node.c.append(right)
+       //////
+       if (DEBUG) Util.printAll(tokens, indexesOfHighestOperators, tokens.head, sortedIndexesOfHighestOperators, nodeId)
        node
    }
    
-   def getIndexOfHighestOperator(s : List[String]): Int = {
-       val sorted = s.sorted
-       val first = sorted(0)
-       return s.indexOf(first)
+   def processOperators(tokens: List[String], nodeId: List[Int]): Node = {
+       val indexesOfHighestOperators = getIndexesOfHighestOperators(tokens)
+       val sortedIndexesOfHighestOperators = indexesOfHighestOperators.toList.sorted
+       val operatorsIndex = sortedIndexesOfHighestOperators.head
+   
+       if (operatorsIndex == 0) { // Prefix Operator
+           prefixOperator(tokens, nodeId)
+       } else { // Operator between parameters
+           inBetweenOperator(tokens, nodeId, operatorsIndex)
+       }
    }
-   */
+   
+   def prefixOperator(tokens: List[String], nodeId: List[Int]): Node = {
+       val node = new Node(tokens.head, nodeId)
+       node.children += expandNode(tokens.tail, nodeId:+ 0)
+       node
+   }
+   
+   def inBetweenOperator(tokens: List[String], nodeId: List[Int], operatorsIndex: Int): Node = {
+       val node = new Node(tokens(operatorsIndex), nodeId)
+       node.children += expandNode(tokens.slice(0, operatorsIndex), nodeId:+ 0)
+       node.children += expandNode(tokens.slice(operatorsIndex+1, tokens.size), nodeId:+ 1)
+       node
+   }
+   
+   ///////////////////////////////////////////////////////
+   
+   def setIsReferencedFlags(root: Node) {
+       val nodes = Traverser.getAllNodes(root)
+       var referencedNodes = getReferencedNodes(nodes)
+       setFlags(nodes, referencedNodes)
+       println("FLAGS nodes: "+nodes)
+       println("FLAGS referencedNodes: "+referencedNodes)
+   }
+   
+   def setFlags(nodes: Set[Node], referencedNodes: Set[List[Int]]) {
+       for (node <- nodes) {
+           if (referencedNodes.contains(node.id)) {
+               node.isReferenced = true
+           }
+       }
+   }
+   
+   def getReferencedNodes(nodes: Set[Node]) = {
+       var referencedNodes: Set[List[Int]] = Set()
+       for (node <- nodes) {
+           val identifier = "[A-Z_]+".r.findFirstIn(node.text)
+           if (identifier.get == "IF") {
+               println ("FLAGS node id: "+node.id)
+               referencedNodes += node.id_if
+           }
+           if (identifier.get == "JUMP_BACK") {
+               println ("FLAGS node id: "+node.id)
+               referencedNodes += node.id_jump
+           }
+       }
+       referencedNodes
+   }
+   
+   def transposeId_if(id: List[Int]) = {
+       val partial = id.dropRight(1)
+       val lastNumber = partial.last + 1
+       partial.dropRight(1) :+ (lastNumber)
+   }
+   
+   def transposeId_jump(id: List[Int]) = {
+       val partial = id.dropRight(2)
+       val lastNumber = partial.last
+       if (lastNumber < 2) {
+           partial.dropRight(1)
+       } else {
+    	   partial.dropRight(1) :+ (lastNumber-2)
+       }
+   }
+   
 }

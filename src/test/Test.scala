@@ -20,11 +20,12 @@ object Test {
 	    val tokensList = tokens.toList
 	    
 	    val INDEX = 3
-	    println(tokensList.slice(0, INDEX-1))
-	    println(tokensList.slice(INDEX, tokensList.size))
+	    println(tokensList.slice(0, INDEX-1)) // -> first, second
+	    println(tokensList.slice(INDEX, tokensList.size)) // -> forth
 	    
-	    
-//	    tokens.dropRight(operatorsIndex))
-//        tokens.slice(operatorsIndex, tokens.size-1)
+	    println("###  " + getIdentifier("36,NUMBER,1,4"))
+//	    tokens.dropRight(INDEX)) // -> takes last INDEX elements
 	}
+	
+	def getIdentifier(token: String) = "[A-Z_]+".r.findFirstIn(token)
 }

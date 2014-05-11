@@ -4,6 +4,8 @@ import scala.collection.mutable.HashMap
 import scala.collection.mutable.HashSet
 
 object Bit8Compiler {
+   var root: Node = null
+    
    def main(args: Array[String]) {
        val program = "increase a {\n" +
 		   "	a = a + 1\n" +
@@ -24,17 +26,60 @@ object Bit8Compiler {
 	 			"		print i\n" +
 	 			"	}\n" +
 	 			"}\n"
-		   
+
+	 			
 	 val testProgram = program2
-	 val parsedProgram = Parser.parse(testProgram)
+	 println("### SOURCE CODE ###");
 	 println(testProgram)
-	 println(parsedProgram)
-	 
-	 val root = Compiler.buildExecutionTree(parsedProgram);
-     Compiler.printTheTree(root)
-	 //val tree = buildTree(parsedProgram)
-	 //print(tree.s)
-	 //walkTheTree(tree)
+
+	 val parsedProgram = Parser.parse(testProgram)
+	 println("### PARSED SOURCE ###");
+	 //println(parsedProgram)
+
+ 	 root = Compiler.buildExecutionTree(parsedProgram);
+	 println("\n### SOURCE TREE ###");
+     Traverser.printTheTree(root)
+
+     runShell();
    }
+   
+   def runShell() {
+       var in = ""
+       do {
+           print("C:\\")
+    	   in = readLine
+    	   execute(in)
+       } while (in != "quit" && in != "exit")
+       println("END")
+   }
+   
+   def execute(in: String) {
+       if (in == "root") {
+           println(root.text)
+       } else if (in.matches("root.[0-9]")) {
+           val i = in.replaceFirst("root.", "")
+           val children = root.children.toList
+           try {
+        	   println(children(i.toInt).text)
+           } catch {
+               case e: Exception => print(e)
+           }
+       } else if (in == "") {
+           println()
+       } else if (in == "") {
+           println()
+       } else if (in == "") {
+           println()
+       } else if (in == "") {
+           println()
+       } else if (in == "") {
+           println()
+       } else if (in == "") {
+           println()
+       } else if (in == "") {
+           println()
+       }
+   }
+   
    
 }

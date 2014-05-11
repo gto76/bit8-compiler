@@ -5,7 +5,8 @@ object Parser {
    
    def parse(program : String): List[String] = {
        val lines =  program.split("\n")
-       var prgOut = new ListBuffer[String]  
+       var prgOut = new ListBuffer[String]
+       prgOut.append("00,IDENT,,0"); // root
        var lineNo = 1
        for (line <- lines) {
            prgOut.appendAll(parseLine(line, lineNo))
@@ -41,7 +42,7 @@ object Parser {
    val identifier = "[a-zA-Z][a-zA-Z0-9]*"
    
    val functionNames = new ListBuffer[String]
-   var depth = 0
+   var depth = 1
    val whileJump = new HashMap[Int, Boolean]
    
    def parseLine(lineIn: String, lineNo: Int) = {
@@ -49,7 +50,7 @@ object Parser {
        var parsedLine = new ListBuffer[String]
        var tokenNo = 0
        for (token <- line.split(" ")) {
-           if (depth == 0) {
+           if (depth == 1) {
 	           
                if (token == "{") {
 	               parsedLine.append(depth+ "0,IDENT," +token+","+ lineNo)
@@ -88,7 +89,7 @@ object Parser {
 	           } else if (token == "if") {
 	        	   parsedLine.append(depth+ "1,IF," +token+","+lineNo)
 	           } else if (token == "while") {
-	        	   parsedLine.append(depth+ "1,WHILE," +token+","+lineNo)
+	        	   parsedLine.append(depth+ "1,IF," +token+","+lineNo) //Old: WHILE
 	        	   whileJump.put(depth+1, true)
 	           } else if (token == "return") {
 	        	   parsedLine.append(depth+ "1,RETURN," +token+","+lineNo)
