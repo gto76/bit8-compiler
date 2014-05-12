@@ -8,11 +8,26 @@ class Node(
 	) {
 	override def toString() = text
 	def toStrinAll() = text+" ; "+id+" ; "+isReferenced+" ; "+children
+	
 	def identifier = "[A-Z_]+".r.findFirstIn(text).get
+	def token = text.split(",")(2)
+	
+	def id_string = getListString(id)
 	def parentsId = id.dropRight(1)
+	def parentsId_string = getListString(parentsId)
 	def id_if = Compiler.transposeId_if(id)
-	def id_jump = Compiler.transposeId_jump(id) 
-	//TODO get id as string
+	def id_if_string = getListString(id_if)
+	def id_jump = Compiler.transposeId_jump(id)
+	def id_jump_string = getListString(id_jump)
+	
+	val ID_SEPARATOR = "_"
+	def getListString(id: List[Int]) = {
+	    var out = "a"
+	    for (idNumber <- id) {
+	        out += idNumber + ID_SEPARATOR
+	    }    
+	    out.dropRight(1)
+	}
 }
 
 /**

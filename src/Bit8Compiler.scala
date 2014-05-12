@@ -39,6 +39,9 @@ object Bit8Compiler {
  	 root = Compiler.buildExecutionTree(parsedProgram);
 	 println("\n### SOURCE TREE ###");
      Traverser.printTheTree(root)
+     
+     println("\n### ASSEBLY ###");
+     println(Traverser.getAssebly(root))
 
      runShell();
    }

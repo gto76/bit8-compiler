@@ -3,28 +3,53 @@ import scala.collection.mutable.ListBuffer
 
 object Traverser {
     
-   def printTheTree(root: Node) {
-       walkTheTree(root, node => println(node.toStrinAll))
-   }
-   
-   def walkTheTree(node: Node, f: Node => Unit) {
-       if (node == null) {
-           return
-       }
-       if (node.children == null || node.children.size == 0) {
-    	   f(node)
-           return
-   	   }
-       for (child <- node.children) {
-           walkTheTree(child, f)
-       }
-       f(node)
-   }
     
     def getAssebly(root: Node): String = {
         val sb = new StringBuilder
+        val nodes = getAllNodes(root)
+        putVariables(nodes, sb)
         traverse(root, sb)
+        sb.append("DB 0\n")
         sb.toString
+    }
+    
+    def printTheTree(root: Node) {
+        walkTheTree(root, node => println(node.toStrinAll))
+    }
+    
+    def walkTheTree(node: Node, f: Node => Unit) {
+        if (node == null) {
+            return
+        }
+        if (node.children == null || node.children.size == 0) {
+     	   f(node)
+            return
+    	   }
+        for (child <- node.children) {
+            walkTheTree(child, f)
+        }
+        f(node)
+    }
+    
+    ///////////////////
+    
+    def putVariables(nodes: Set[Node], sb: StringBuilder) {
+        sb.append("JMP start\n")
+        val variables = getVariables(nodes)
+        for (variable <- variables) {
+            sb.append(variable+": DB 0\n")
+        }
+        sb.append("\nstart:\n")
+    }
+    
+    def getVariables(nodes: Set[Node]) = {
+        val variables = collection.mutable.Set[String]()
+        for (node <- nodes) {
+            if (node.identifier == "ADDRESS" || node.identifier == "VALUE") {
+                variables += node.token
+            }
+        }
+        variables.toSet
     }
     
     def traverse(node: Node, sb: StringBuilder) {
@@ -51,51 +76,72 @@ object Traverser {
     }
     
     def getText(node: Node): String = {
-        // TODO if level 6: push TEXT
-        // TODO referenced
-
-		if (node.identifier == "FUNCTION")
-		    "?"
-		else if (node.identifier == "PARAMETERS")
-		    "?"
-		else if (node.identifier == "IDENT")
-		    ""
-		else if (node.identifier == "DEDENT")	
-		    ""
-		else if (node.identifier == "EXIT")	
-		    "DB 0\n"
-		else if (node.identifier == "ASSIGN")
-		    "POP a\n" +
-		    "POP b\n" +
-		    "MOV [a], b\n"
-		else if (node.identifier == "PRINT") 
-		    "POP a\n" +
-		    "MOV [232] a\n"
-		else if (node.identifier == "IF") 
-		    "POP a\n" +
-		    "MOV b 0\n" +
-		    "JE "+node.id_if+"\n"
-		else if (node.identifier == "RETURN") 	
-		    "?"
-		else if (node.identifier == "EQUALS") 
-		    getConditionalBoilerPlate(node, "JE")
-		else if (node.identifier == "MULTIPLY")   
-		    getMathBoilerPlate("MUL")
-		else if (node.identifier == "DIVIDE") 	
-		    getMathBoilerPlate("DIV")
-		else if (node.identifier == "ADD")  		
-		    getMathBoilerPlate("ADD")
-		else if (node.identifier == "SUBTRACT")  	
-			getMathBoilerPlate("SUB")	    
-		else if (node.identifier == "ADDRESS")  	
-		    "PUSH t\n"
-		else if (node.identifier == "VALUE")  	
-		    "PUSH t\n"
-		else if (node.identifier == "NUMBER")  	
-		    "PUSH t\n"
-		else
-		    throw new IllegalArgumentException("Node has illegal identifier: "+node.identifier)
+        addAddressIfReferenced(node) +
+    	{
+	    	if (node.identifier == "FUNCTION")
+			    ""
+			else if (node.identifier == "PARAMETERS")
+			    ""
+			else if (node.identifier == "RETURN") 	
+			    ""
+			else if (node.identifier == "IDENT")
+			    ""
+			else if (node.identifier == "DEDENT")	
+			    ""
+			else if (node.identifier == "LINE_BREAK")	
+			    ""
+			else if (node.identifier == "EXIT")	
+			    "DB 0\n"
+			else if (node.identifier == "ASSIGN")
+			    "POP a\n" +
+			    "POP b\n" +
+			    "MOV [b], a\n"
+			else if (node.identifier == "PRINT") 
+			    "POP a\n" +
+			    "MOV [232], a\n"
+			else if (node.identifier == "IF") 
+			    "POP a\n" +
+			    "MOV b, 0\n" +
+			    "JE "+node.id_if_string+"\n"
+			else if (node.identifier == "JUMP_BACK") 
+			    "JMP "+node.id_jump_string+"\n"   
+			else if (node.identifier == "EQUALS") 
+			    getConditionalBoilerPlate(node, "JE")
+			else if (node.identifier == "NOT_EQUALS") 
+			    getConditionalBoilerPlate(node, "JNE")
+			else if (node.identifier == "GRATER_THAN") 
+			    getConditionalBoilerPlate(node, "JA")
+			else if (node.identifier == "SMALLER_THAN") 
+			    getConditionalBoilerPlate(node, "JB")
+			else if (node.identifier == "GRATER_OR_EQUAL") 
+			    getConditionalBoilerPlate(node, "JAE")
+			else if (node.identifier == "SMALER_OR_EQUAL") 
+			    getConditionalBoilerPlate(node, "JB")
+			else if (node.identifier == "MULTIPLY")   
+			    getMathBoilerPlate("MUL")
+			else if (node.identifier == "DIVIDE") 	
+			    getMathBoilerPlate("DIV")
+			else if (node.identifier == "ADD")  		
+			    getMathBoilerPlate("ADD")
+			else if (node.identifier == "SUBTRACT")  	
+				getMathBoilerPlate("SUB")	    
+			else if (node.identifier == "ADDRESS")  	
+			    "PUSH "+node.token+"\n"
+			else if (node.identifier == "VALUE")  	
+			    "PUSH ["+node.token+"]\n"
+			else if (node.identifier == "NUMBER")  	
+			    "PUSH "+node.token+"\n"
+			else
+			    throw new IllegalArgumentException("Node has illegal identifier: "+node.identifier)
+    	}
     }
+    
+    def addAddressIfReferenced(node: Node) = {
+    	if (node.isReferenced) 
+        	node.id_string + ": "
+       	else
+       		""
+	}
     
     def getMathBoilerPlate(instruction: String) = {
         "POP a\n" +
@@ -108,10 +154,11 @@ object Traverser {
     	"POP a\n" +
     	"POP b\n" +
     	"CMP a, b\n" +
-    	instruction +" "+ node.id +"-true\n" +
+    	instruction +" "+ node.id_string +"_true\n" +
     	"PUSH 0\n" +
-    	"JMP "+ node.parentsId +"\n" +
-    	node.id +"-true: PUSH 1\n"
+    	"JMP "+ node.id_string +"_end\n" +
+    	node.id_string +"_true: PUSH 1\n"+
+    	node.id_string +"_end:\n"
     }
     
 
