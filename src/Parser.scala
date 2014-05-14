@@ -56,14 +56,14 @@ object Parser {
 	               parsedLine.append(depth+ "0,IDENT," +token+","+ lineNo)
 	               depth = depth + 1
 	           } else if (token.matches(identifier)) {
-	               if (tokenNo == 0) {
+	               if (token.startsWith("main")) {
+	            	   parsedLine.append(depth+ "0,MAIN," +token+","+lineNo)
+	               } else if (tokenNo == 0) {
 	            	   parsedLine.append(depth+ "0,FUNCTION," +token+","+lineNo)
+	            	   parsedLine.append(depth+ "0,PARAMETERS," +","+lineNo)
 	            	   functionNames += token
-	               } else if (tokenNo == 1) {
-	            	   parsedLine.append(depth+ "1,PARAMETERS," +","+lineNo)
-	            	   parsedLine.append(depth+ "6,ADDRESS," +token+","+lineNo)
 	               } else {
-	            	   parsedLine.append(depth+ "6,ADDRESS," +token+","+lineNo)
+	            	   parsedLine.append(depth+ "6,PARAMETER," +token+","+lineNo)
 	               }
 	           }
 	             
@@ -89,7 +89,7 @@ object Parser {
 	           } else if (token == "if") {
 	        	   parsedLine.append(depth+ "1,IF," +token+","+lineNo)
 	           } else if (token == "while") {
-	        	   parsedLine.append(depth+ "1,IF," +token+","+lineNo) //Old: WHILE
+	        	   parsedLine.append(depth+ "1,IF," +token+","+lineNo)
 	        	   whileJump.put(depth+1, true)
 	           } else if (token == "return") {
 	        	   parsedLine.append(depth+ "1,RETURN," +token+","+lineNo)

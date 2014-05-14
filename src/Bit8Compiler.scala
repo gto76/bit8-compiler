@@ -7,15 +7,15 @@ object Bit8Compiler {
    var root: Node = null
     
    def main(args: Array[String]) {
-       val program = "increase a {\n" +
-		   "	a = a + 1\n" +
-		   "	return a\n" +
+       val program = "increase x {\n" +
+		   "	x = x + 1\n" +
+		   "	return x\n" +
 		   "}" +
 		   "\n" +
            "main {\n" +
-		   "	a = 5\n" +
-		   "	b = increase 5\n" +
-		   "	print b\n" +
+		   "	va = 5\n" +
+		   "	vb = increase 5\n" +
+		   "	print vb\n" +
 		   "}\n" +
 		   "\n"
 		   
@@ -28,7 +28,7 @@ object Bit8Compiler {
 	 			"}\n"
 
 	 			
-	 val testProgram = program2
+	 val testProgram = program
 	 println("### SOURCE CODE ###");
 	 println(testProgram)
 

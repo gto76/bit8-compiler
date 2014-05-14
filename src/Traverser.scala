@@ -34,12 +34,12 @@ object Traverser {
     ///////////////////
     
     def putVariables(nodes: Set[Node], sb: StringBuilder) {
-        sb.append("JMP start\n")
+        sb.append("JMP main\n")
         val variables = getVariables(nodes)
         for (variable <- variables) {
             sb.append(variable+": DB 0\n")
         }
-        sb.append("\nstart:\n")
+        //sb.append("\nstart:\n")
     }
     
     def getVariables(nodes: Set[Node]) = {
@@ -78,12 +78,29 @@ object Traverser {
     def getText(node: Node): String = {
         addAddressIfReferenced(node) +
     	{
-	    	if (node.identifier == "FUNCTION")
-			    ""
+            if (node.identifier == "MAIN") 
+                "\nmain:\n"
+            else if (node.identifier == "FUNCTION") 
+    	    	"\n"+node.token+":\n" +
+    	        "POP d\n"
 			else if (node.identifier == "PARAMETERS")
-			    ""
-			else if (node.identifier == "RETURN") 	
-			    ""
+			    "PUSH d\n" // not if main TODO
+			else if (node.identifier == "PARAMETER")
+			    "POP a\n" +
+			    "MOV ["+node.token+"], a\n"
+			else if (node.identifier == "FUNCTION_CALL")
+			    "CALL "+node.token+"\n"
+			else if (node.identifier == "RETURN") {
+			    if (node.children == null || node.children.size == 0) {
+			    	"RET\n"
+			    } else {
+			        "POP a\n" +
+			        "POP b\n" +
+			        "PUSH a\n" +
+			        "PUSH b\n" +
+			        "RET\n"
+			    }
+			} 	
 			else if (node.identifier == "IDENT")
 			    ""
 			else if (node.identifier == "DEDENT")	
@@ -161,7 +178,4 @@ object Traverser {
     	node.id_string +"_end:\n"
     }
     
-
-
-
 }
