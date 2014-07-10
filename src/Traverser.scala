@@ -39,18 +39,19 @@ object Traverser {
         for (variable <- variables) {
             sb.append(variable+": DB 0\n")
         }
-        //sb.append("\nstart:\n")
     }
     
     def getVariables(nodes: Set[Node]) = {
-        val variables = collection.mutable.Set[String]()
+        val variables = collection.mutable.Set[Node]()
         for (node <- nodes) {
-            if (node.identifier == "ADDRESS" || node.identifier == "VALUE") {
-                variables += node.token
+            if (node.identifier == "ADDRESS" || node.identifier == "PARAMETER") {
+                variables += node // TODO hierarchy/scope
             }
         }
         variables.toSet
     }
+    
+    ///////////
     
     def traverse(node: Node, sb: StringBuilder) {
        // if no children print
