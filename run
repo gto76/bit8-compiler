@@ -1,0 +1,13 @@
+#!/bin/bash
+#
+# Usage: ./run 
+# Compiles and runs the project. 
+
+set -e
+
+mkdir -p bin 
+scalac -d bin src/main/scala/*
+
+cd bin
+scala Bit8Compiler
+
