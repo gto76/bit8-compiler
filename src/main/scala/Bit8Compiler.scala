@@ -4,6 +4,9 @@ import scala.collection.mutable.HashMap
 import scala.collection.mutable.HashSet
 
 object Bit8Compiler {
+
+   val RUN_SHELL = false
+
    var root: Node = null
     
    def main(args: Array[String]) {
@@ -42,14 +45,16 @@ object Bit8Compiler {
      
      println("\n### ASSEBLY ###");
      println(Traverser.getAssebly(root))
-
-     runShell();
+	
+	 if (RUN_SHELL) {
+     	runShell()
+	 }
    }
    
    def runShell() {
        var in = ""
        do {
-           print("C:\\")
+           print("[bit8-shell]: ")
     	   in = readLine
     	   execute(in)
        } while (in != "quit" && in != "exit")
