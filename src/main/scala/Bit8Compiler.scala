@@ -31,7 +31,7 @@ object Bit8Compiler {
 	 			"}\n"
 
 	 			
-	 val testProgram = program
+	 val testProgram = program2
 	 println("### SOURCE CODE ###");
 	 println(testProgram)
 
