@@ -1,4 +1,4 @@
 bit8-compiler
 =============
 
-Compiler for simple 8-bit compiler
+Compiler for simple 8-bit computer
